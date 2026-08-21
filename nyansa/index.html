@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nyansa — Ask anything</title>
+<title>Nyansa — AI image generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -28,7 +28,6 @@
     flex-direction:column;
   }
 
-  /* ---------- Signature element: the orb ---------- */
   .orb{
     width:34px;height:34px;border-radius:50%;
     flex:none;
@@ -52,22 +51,20 @@
     .orb, .orb.thinking{animation:none;}
   }
 
-  /* ---------- Header ---------- */
   header{
-    display:flex;align-items:center;justify-content:space-between;
+    display:flex;align-items:center;gap:10px;
     padding:16px 24px;
     border-bottom:1px solid var(--border);
     flex:none;
   }
-  .brand{display:flex;align-items:center;gap:10px;}
-  .brand h1{
+  header h1{
     font-family:'Fraunces',serif;
     font-weight:600;
     font-size:20px;
     margin:0;
     letter-spacing:0.2px;
   }
-  .brand span{
+  header span{
     display:block;
     font-family:'IBM Plex Mono',monospace;
     font-size:10.5px;
@@ -75,132 +72,45 @@
     letter-spacing:0.06em;
     text-transform:uppercase;
   }
-  nav.tabs{
-    display:flex;
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:999px;
-    padding:3px;
-    gap:2px;
-  }
-  nav.tabs button{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:12px;
-    letter-spacing:0.03em;
-    background:transparent;
-    border:none;
-    color:var(--text-dim);
-    padding:8px 16px;
-    border-radius:999px;
-    cursor:pointer;
-    transition:background 0.2s, color 0.2s;
-  }
-  nav.tabs button.active{
-    background:var(--surface-2);
-    color:var(--text);
-  }
 
-  /* ---------- Main ---------- */
   main{
     flex:1;
     display:flex;
     flex-direction:column;
-    max-width:760px;
+    max-width:640px;
     width:100%;
     margin:0 auto;
-    padding:0 20px;
-    overflow:hidden;
-  }
-  .panel{display:none; flex:1; flex-direction:column; overflow:hidden;}
-  .panel.active{display:flex;}
-
-  /* Chat panel */
-  #log{
-    flex:1;
-    overflow-y:auto;
-    padding:24px 0;
-    display:flex;
-    flex-direction:column;
+    padding:32px 20px 40px;
     gap:18px;
+    overflow-y:auto;
   }
-  .empty-state{
-    margin:auto;
-    text-align:center;
-    color:var(--text-dim);
-    max-width:360px;
-  }
-  .empty-state .orb{margin:0 auto 18px;width:48px;height:48px;}
-  .empty-state h2{
-    font-family:'Fraunces',serif;
-    font-weight:500;
-    font-size:22px;
-    color:var(--text);
-    margin:0 0 8px;
-  }
-  .empty-state p{font-size:14px;line-height:1.5;margin:0;}
+  main h2{font-family:'Fraunces',serif;font-weight:500;font-size:24px;margin:0;}
+  main p.lede{color:var(--text-dim);font-size:14px;line-height:1.6;margin:0;max-width:520px;}
 
-  .msg{display:flex;gap:12px;align-items:flex-start;}
-  .msg.user{flex-direction:row-reverse;}
-  .bubble{
-    padding:12px 16px;
-    border-radius:14px;
-    font-size:14.5px;
-    line-height:1.55;
-    max-width:80%;
-    white-space:pre-wrap;
-  }
-  .msg.assistant .bubble{background:var(--surface);border:1px solid var(--border);border-top-left-radius:4px;}
-  .msg.user .bubble{background:var(--periwinkle);color:#10121A;border-top-right-radius:4px;}
-  .avatar-spacer{width:34px;flex:none;}
-
-  form#composer{
-    flex:none;
-    display:flex;
-    gap:10px;
-    padding:16px 0 22px;
-    border-top:1px solid var(--border);
-  }
-  #composer textarea{
-    flex:1;
-    resize:none;
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:12px;
-    color:var(--text);
-    font-family:'Inter',sans-serif;
-    font-size:14.5px;
-    padding:12px 14px;
-    height:46px;
-    max-height:140px;
-  }
-  #composer textarea:focus{outline:2px solid var(--periwinkle); outline-offset:1px;}
-  #composer button{
-    background:var(--amber);
-    color:#10121A;
-    border:none;
-    border-radius:12px;
-    padding:0 20px;
-    font-family:'Inter',sans-serif;
-    font-weight:600;
-    font-size:14px;
-    cursor:pointer;
-  }
-  #composer button:disabled{opacity:0.5;cursor:not-allowed;}
-  #composer button:focus-visible, nav.tabs button:focus-visible{outline:2px solid var(--periwinkle);outline-offset:2px;}
-
-  /* Image / Video panels */
-  .builder{padding:32px 0;display:flex;flex-direction:column;gap:18px;overflow-y:auto;}
-  .builder h2{font-family:'Fraunces',serif;font-weight:500;font-size:22px;margin:0;}
-  .builder p.lede{color:var(--text-dim);font-size:14px;line-height:1.6;margin:0 0 4px;max-width:520px;}
   .prompt-row{display:flex;gap:10px;}
   .prompt-row input{
     flex:1;background:var(--surface);border:1px solid var(--border);
     border-radius:12px;color:var(--text);padding:12px 14px;font-size:14.5px;font-family:'Inter',sans-serif;
   }
+  .prompt-row input:focus{outline:2px solid var(--periwinkle); outline-offset:1px;}
   .prompt-row button{
-    background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);
-    border-radius:12px;padding:0 18px;font-family:'IBM Plex Mono',monospace;font-size:12px;cursor:not-allowed;
+    background:var(--amber);
+    border:none;color:#10121A;
+    border-radius:12px;padding:0 20px;font-family:'Inter',sans-serif;font-weight:600;font-size:14px;cursor:pointer;
   }
+  .prompt-row button:disabled{opacity:0.5;cursor:not-allowed;}
+  .prompt-row button:focus-visible{outline:2px solid var(--periwinkle);outline-offset:2px;}
+
+  #imgResult{min-height:0;}
+  #imgResult img{
+    width:100%;
+    max-width:520px;
+    border-radius:14px;
+    border:1px solid var(--border);
+    display:block;
+  }
+  #imgResult p{color:var(--text-dim);font-size:13px;font-family:'IBM Plex Mono',monospace;}
+
   .status-card{
     border:1px dashed var(--border);
     border-radius:14px;
@@ -219,197 +129,49 @@
     font-size:12px;
     color:var(--periwinkle);
   }
-  #imgResult{min-height:0;}
-  #imgResult img{
-    width:100%;
-    max-width:420px;
-    border-radius:14px;
-    border:1px solid var(--border);
-    display:block;
-  }
-  #imgResult p{color:var(--text-dim);font-size:13px;font-family:'IBM Plex Mono',monospace;}
 
   @media (max-width:600px){
     header{padding:14px 16px;}
-    main{padding:0 14px;}
-    nav.tabs button{padding:7px 12px;font-size:11px;}
+    main{padding:24px 14px 32px;}
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="brand">
-    <div class="orb" id="headerOrb"></div>
-    <div>
-      <h1>Nyansa</h1>
-      <span>ask · see · make</span>
-    </div>
+  <div class="orb" id="headerOrb"></div>
+  <div>
+    <h1>Nyansa</h1>
+    <span>ai image generator</span>
   </div>
-  <nav class="tabs">
-    <button data-panel="chat" class="active">Chat</button>
-    <button data-panel="images">Images</button>
-    <button data-panel="video">Video</button>
-  </nav>
 </header>
 
 <main>
-
-  <!-- CHAT -->
-  <section class="panel active" id="panel-chat">
-    <div id="log">
-      <div class="empty-state" id="emptyState">
-        <div class="orb"></div>
-        <h2>Ask Nyansa anything</h2>
-        <p>This chat calls a real AI model through your own backend function once deployed on Netlify.</p>
-      </div>
-    </div>
-    <form id="composer">
-      <textarea id="input" placeholder="Ask anything…" rows="1"></textarea>
-      <button type="submit" id="sendBtn">Send</button>
-    </form>
-  </section>
-
-  <!-- IMAGES -->
-  <section class="panel" id="panel-images">
-    <div class="builder">
-      <h2>Image generation</h2>
-      <p class="lede">This one's live — it's calling Pollinations.ai, a free image API that doesn't need a secret key, so it works straight from the browser.</p>
-      <form class="prompt-row" id="imgForm">
-        <input type="text" id="imgPrompt" placeholder="A quiet street market in Accra at golden hour…">
-        <button type="submit" id="imgBtn">Generate</button>
-      </form>
-      <div id="imgResult"></div>
-      <div class="status-card">
-        <b>Heads up:</b> free, keyless use is rate-limited (roughly one image per hour per visitor's IP address) — fine for a demo, not for real traffic. For anything client-facing, grab a free key at <code>enter.pollinations.ai</code> and add it to the request; it removes the watermark and raises the limit.
-      </div>
-    </div>
-  </section>
-
-  <!-- VIDEO -->
-  <section class="panel" id="panel-video">
-    <div class="builder">
-      <h2>Video generation</h2>
-      <p class="lede">Worth setting expectations here: this is the hardest of the three to offer for real.</p>
-      <div class="prompt-row">
-        <input type="text" placeholder="Drone shot rising over Lake Volta at sunrise…" disabled>
-        <button disabled>Generate</button>
-      </div>
-      <div class="status-card">
-        <b>Why it's different:</b> providers like Runway, Luma, or Google's Veo charge per second of footage, jobs take minutes not seconds, and access is often gated or waitlisted. For a first version, it's usually smarter to launch with chat + images working, and add a "video — coming soon" state rather than promise something that isn't reliably live yet.
-      </div>
-    </div>
-  </section>
-
+  <h2>Describe an image</h2>
+  <p class="lede">Live, no setup needed — this calls Pollinations.ai's free image API straight from the browser.</p>
+  <form class="prompt-row" id="imgForm">
+    <input type="text" id="imgPrompt" placeholder="A quiet street market in Accra at golden hour…">
+    <button type="submit" id="imgBtn">Generate</button>
+  </form>
+  <div id="imgResult"></div>
+  <div class="status-card">
+    <b>Heads up:</b> free, keyless use is rate-limited (roughly one image per hour per visitor's IP address) — fine for a demo, not for real traffic. For anything client-facing, grab a free key at <code>enter.pollinations.ai</code> and add it to the request; it removes the watermark and raises the limit.
+  </div>
 </main>
 
 <script>
-  // ---- Tab switching ----
-  const tabs = document.querySelectorAll('nav.tabs button');
-  const panels = document.querySelectorAll('.panel');
-  tabs.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabs.forEach(b => b.classList.remove('active'));
-      panels.forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
-    });
-  });
-
-  // ---- Chat ----
-  // This calls your own backend function at /.netlify/functions/chat,
-  // which holds the real Anthropic API key server-side (see chat.js).
-  // Locally, or if that function isn't deployed yet, this call will fail —
-  // that's expected until the site is deployed on Netlify with
-  // ANTHROPIC_API_KEY set.
-  const log = document.getElementById('log');
-  const emptyState = document.getElementById('emptyState');
-  const form = document.getElementById('composer');
-  const input = document.getElementById('input');
-  const sendBtn = document.getElementById('sendBtn');
-  const headerOrb = document.getElementById('headerOrb');
-  let history = [];
-
-  function appendMessage(role, text){
-    if (emptyState) emptyState.remove();
-    const row = document.createElement('div');
-    row.className = 'msg ' + role;
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble';
-    bubble.textContent = text;
-    if (role === 'assistant'){
-      const orb = document.createElement('div');
-      orb.className = 'orb';
-      row.appendChild(orb);
-    } else {
-      const spacer = document.createElement('div');
-      spacer.className = 'avatar-spacer';
-      row.appendChild(spacer);
-    }
-    row.appendChild(bubble);
-    log.appendChild(row);
-    log.scrollTop = log.scrollHeight;
-    return bubble;
-  }
-
-  async function sendMessage(text){
-    history.push({role:'user', content:text});
-    appendMessage('user', text);
-    input.value = '';
-    sendBtn.disabled = true;
-    headerOrb.classList.add('thinking');
-    const replyBubble = appendMessage('assistant', 'Thinking…');
-
-    try {
-      const response = await fetch('/.netlify/functions/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history })
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Request failed');
-      const reply = data.reply || "I didn't get a text response back — try rephrasing.";
-      replyBubble.textContent = reply;
-      history.push({role:'assistant', content:reply});
-    } catch (err) {
-      replyBubble.textContent =
-        "Couldn't reach the chat backend. If this site isn't deployed on Netlify yet (or ANTHROPIC_API_KEY isn't set there), that's expected — see netlify/functions/chat.js.";
-    } finally {
-      sendBtn.disabled = false;
-      headerOrb.classList.remove('thinking');
-    }
-  }
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const text = input.value.trim();
-    if (!text) return;
-    sendMessage(text);
-  });
-
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey){
-      e.preventDefault();
-      form.requestSubmit();
-    }
-  });
-
-  input.addEventListener('input', () => {
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 140) + 'px';
-  });
-
-  // ---- Images (live, via Pollinations.ai — no key required for casual use) ----
   const imgForm = document.getElementById('imgForm');
   const imgPrompt = document.getElementById('imgPrompt');
   const imgBtn = document.getElementById('imgBtn');
   const imgResult = document.getElementById('imgResult');
+  const headerOrb = document.getElementById('headerOrb');
 
   imgForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const prompt = imgPrompt.value.trim();
     if (!prompt) return;
     imgBtn.disabled = true;
+    headerOrb.classList.add('thinking');
     imgResult.innerHTML = '<p>Generating…</p>';
 
     const url = 'https://image.pollinations.ai/prompt/' +
@@ -421,10 +183,12 @@
       imgResult.innerHTML = '';
       imgResult.appendChild(img);
       imgBtn.disabled = false;
+      headerOrb.classList.remove('thinking');
     };
     img.onerror = () => {
       imgResult.innerHTML = '<p>That didn\'t load — Pollinations may be rate-limiting this connection right now. Try again in a bit, or add a free API key (see the note below).</p>';
       imgBtn.disabled = false;
+      headerOrb.classList.remove('thinking');
     };
     img.src = url;
     img.alt = prompt;
@@ -433,3 +197,4 @@
 
 </body>
 </html>
+switch to images-only version
