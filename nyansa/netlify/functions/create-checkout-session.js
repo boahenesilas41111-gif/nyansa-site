@@ -33,6 +33,10 @@ exports.handler = async (event) => {
     // later knows WHICH user just paid.
     params.append('metadata[user_id]', userId);
     if (email) params.append('customer_email', email);
+    // Managed Payments (on by default for new Stripe accounts) requires a
+    // tax code on the product, which is overkill for a small digital
+    // subscription — turning it off for this session avoids that entirely.
+    params.append('managed_payments[enabled]', 'false');
 
     const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
