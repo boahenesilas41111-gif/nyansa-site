@@ -6,6 +6,7 @@
 <title>Nyansa — AI image generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root{
     --bg:#0F1116;
@@ -52,11 +53,12 @@
   }
 
   header{
-    display:flex;align-items:center;gap:10px;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
     padding:16px 24px;
     border-bottom:1px solid var(--border);
     flex:none;
   }
+  .brand{display:flex;align-items:center;gap:10px;}
   header h1{
     font-family:'Fraunces',serif;
     font-weight:600;
@@ -72,6 +74,24 @@
     letter-spacing:0.06em;
     text-transform:uppercase;
   }
+  #accountArea{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--text-dim);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  #accountArea button{
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    border-radius:8px;
+    padding:5px 10px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    cursor:pointer;
+  }
 
   main{
     flex:1;
@@ -86,6 +106,31 @@
   }
   main h2{font-family:'Fraunces',serif;font-weight:500;font-size:24px;margin:0;}
   main p.lede{color:var(--text-dim);font-size:14px;line-height:1.6;margin:0;max-width:520px;}
+
+  /* Auth form */
+  #authBox{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:20px;
+    max-width:340px;
+  }
+  #authBox input{
+    background:var(--surface-2);border:1px solid var(--border);
+    border-radius:10px;color:var(--text);padding:10px 12px;font-size:14px;font-family:'Inter',sans-serif;
+  }
+  .auth-buttons{display:flex;gap:8px;}
+  .auth-buttons button{
+    flex:1;
+    border:none;border-radius:10px;padding:9px 0;
+    font-family:'Inter',sans-serif;font-weight:600;font-size:13.5px;cursor:pointer;
+  }
+  #signInBtn{background:var(--periwinkle);color:#10121A;}
+  #signUpBtn{background:var(--surface-2);color:var(--text);border:1px solid var(--border) !important;}
+  #authMsg{font-size:12.5px;color:var(--text-dim);margin:0;min-height:16px;}
 
   .prompt-row{display:flex;gap:10px;}
   .prompt-row input{
@@ -121,6 +166,7 @@
     line-height:1.6;
   }
   .status-card b{color:var(--text);font-weight:600;}
+  .status-card.upgrade{border-style:solid;border-color:var(--amber);}
   .status-card code{
     font-family:'IBM Plex Mono',monospace;
     background:var(--surface-2);
@@ -131,7 +177,7 @@
   }
 
   @media (max-width:600px){
-    header{padding:14px 16px;}
+    header{padding:14px 16px;flex-wrap:wrap;}
     main{padding:24px 14px 32px;}
   }
 </style>
@@ -139,37 +185,172 @@
 <body>
 
 <header>
-  <div class="orb" id="headerOrb"></div>
-  <div>
-    <h1>Nyansa</h1>
-    <span>ai image generator</span>
+  <div class="brand">
+    <div class="orb" id="headerOrb"></div>
+    <div>
+      <h1>Nyansa</h1>
+      <span>ai image generator</span>
+    </div>
   </div>
+  <div id="accountArea"></div>
 </header>
 
 <main>
-  <h2>Describe an image</h2>
-  <p class="lede">Live, no setup needed — this calls Pollinations.ai's free image API straight from the browser.</p>
-  <form class="prompt-row" id="imgForm">
-    <input type="text" id="imgPrompt" placeholder="A quiet street market in Accra at golden hour…">
-    <button type="submit" id="imgBtn">Generate</button>
-  </form>
-  <div id="imgResult"></div>
-  <div class="status-card">
-    <b>Heads up:</b> free, keyless use is rate-limited (roughly one image per hour per visitor's IP address) — fine for a demo, not for real traffic. For anything client-facing, grab a free key at <code>enter.pollinations.ai</code> and add it to the request; it removes the watermark and raises the limit.
+
+  <!-- Shown when signed out -->
+  <div id="authSection">
+    <h2>Sign in to generate images</h2>
+    <p class="lede">Everyone gets 3 free images a day. Unlimited is $3/month.</p>
+    <div id="authBox">
+      <input type="email" id="authEmail" placeholder="Email">
+      <input type="password" id="authPassword" placeholder="Password">
+      <div class="auth-buttons">
+        <button id="signInBtn" type="button">Log in</button>
+        <button id="signUpBtn" type="button">Sign up</button>
+      </div>
+      <p id="authMsg"></p>
+    </div>
   </div>
+
+  <!-- Shown when signed in -->
+  <div id="generatorSection" style="display:none;">
+    <h2>Describe an image</h2>
+    <p class="lede" id="quotaLine"></p>
+    <form class="prompt-row" id="imgForm">
+      <input type="text" id="imgPrompt" placeholder="A quiet street market in Accra at golden hour…">
+      <button type="submit" id="imgBtn">Generate</button>
+    </form>
+    <div id="imgResult"></div>
+    <div class="status-card upgrade" id="upgradeCard" style="display:none;">
+      <b>Out of free images for today.</b> Upgrade to unlimited for $3/month, or come back tomorrow for 3 more.
+      <div style="margin-top:10px;">
+        <button id="upgradeBtn2" type="button" style="background:var(--amber);color:#10121A;border:none;border-radius:10px;padding:8px 16px;font-family:'Inter',sans-serif;font-weight:600;font-size:13.5px;cursor:pointer;">Upgrade — $3/mo</button>
+      </div>
+    </div>
+    <div class="status-card">
+      <b>Heads up:</b> free, keyless use of the image API is rate-limited (roughly one image per hour per IP) — the paywall controls who can try, but heavy real traffic may still want a Pollinations API key added later.
+    </div>
+  </div>
+
 </main>
 
 <script>
+  // ---- Supabase setup ----
+  const SUPABASE_URL = 'https://zwezstvysiwatzddmqri.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3ZXpzdHZ5c2l3YXR6ZGRtcXJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczNDU2NzAsImV4cCI6MjEwMjkyMTY3MH0.eMID6dkqaG0KxX_6oxRq6r_fg6VRN258Yrf4gvL3Y5E';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const FREE_LIMIT = 3;
+
+  const headerOrb = document.getElementById('headerOrb');
+  const accountArea = document.getElementById('accountArea');
+  const authSection = document.getElementById('authSection');
+  const generatorSection = document.getElementById('generatorSection');
+  const authEmail = document.getElementById('authEmail');
+  const authPassword = document.getElementById('authPassword');
+  const authMsg = document.getElementById('authMsg');
+  const quotaLine = document.getElementById('quotaLine');
+  const upgradeCard = document.getElementById('upgradeCard');
   const imgForm = document.getElementById('imgForm');
   const imgPrompt = document.getElementById('imgPrompt');
   const imgBtn = document.getElementById('imgBtn');
   const imgResult = document.getElementById('imgResult');
-  const headerOrb = document.getElementById('headerOrb');
 
-  imgForm.addEventListener('submit', (e) => {
+  let currentSession = null;
+
+  // ---- Auth ----
+  document.getElementById('signUpBtn').addEventListener('click', async () => {
+    authMsg.textContent = 'Working on it…';
+    const { error } = await supabaseClient.auth.signUp({ email: authEmail.value, password: authPassword.value });
+    authMsg.textContent = error ? error.message : 'Check your email to confirm your account, then log in.';
+  });
+
+  document.getElementById('signInBtn').addEventListener('click', async () => {
+    authMsg.textContent = 'Working on it…';
+    const { error } = await supabaseClient.auth.signInWithPassword({ email: authEmail.value, password: authPassword.value });
+    if (error) authMsg.textContent = error.message;
+  });
+
+  async function signOut(){
+    await supabaseClient.auth.signOut();
+    location.reload();
+  }
+
+  supabaseClient.auth.onAuthStateChange((_event, session) => {
+    currentSession = session;
+    renderAccountArea();
+    if (session) {
+      authSection.style.display = 'none';
+      generatorSection.style.display = 'flex';
+      generatorSection.style.flexDirection = 'column';
+      refreshQuota();
+    } else {
+      authSection.style.display = 'block';
+      generatorSection.style.display = 'none';
+    }
+  });
+
+  function renderAccountArea(){
+    if (!currentSession){ accountArea.innerHTML = ''; return; }
+    accountArea.innerHTML = '';
+    const emailSpan = document.createElement('span');
+    emailSpan.textContent = currentSession.user.email;
+    const logoutBtn = document.createElement('button');
+    logoutBtn.textContent = 'Log out';
+    logoutBtn.onclick = signOut;
+    accountArea.appendChild(emailSpan);
+    accountArea.appendChild(logoutBtn);
+  }
+
+  // ---- Usage + subscription checks (safe from the browser — RLS restricts
+  // every user to their own row only) ----
+  async function getSubscriptionStatus(userId){
+    const { data } = await supabaseClient.from('subscriptions').select('status').eq('user_id', userId).maybeSingle();
+    return data ? data.status : 'free';
+  }
+
+  async function getTodayUsage(userId){
+    const today = new Date().toISOString().slice(0,10);
+    const { data } = await supabaseClient.from('image_usage').select('count').eq('user_id', userId).eq('day', today).maybeSingle();
+    return { today, count: data ? data.count : 0 };
+  }
+
+  async function incrementUsage(userId, today, currentCount){
+    await supabaseClient.from('image_usage').upsert({ user_id: userId, day: today, count: currentCount + 1 }, { onConflict: 'user_id,day' });
+  }
+
+  async function refreshQuota(){
+    if (!currentSession) return;
+    const userId = currentSession.user.id;
+    const status = await getSubscriptionStatus(userId);
+    if (status === 'active'){
+      quotaLine.textContent = "You're on Unlimited. Generate as many as you like.";
+      upgradeCard.style.display = 'none';
+      return;
+    }
+    const { count } = await getTodayUsage(userId);
+    const remaining = Math.max(0, FREE_LIMIT - count);
+    quotaLine.textContent = remaining + ' of ' + FREE_LIMIT + ' free images left today.';
+    upgradeCard.style.display = remaining === 0 ? 'block' : 'none';
+  }
+
+  // ---- Generate an image ----
+  imgForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (!currentSession) return;
     const prompt = imgPrompt.value.trim();
     if (!prompt) return;
+
+    const userId = currentSession.user.id;
+    const status = await getSubscriptionStatus(userId);
+    let usage = null;
+    if (status !== 'active') {
+      usage = await getTodayUsage(userId);
+      if (usage.count >= FREE_LIMIT) {
+        upgradeCard.style.display = 'block';
+        return;
+      }
+    }
+
     imgBtn.disabled = true;
     headerOrb.classList.add('thinking');
     imgResult.innerHTML = '<p>Generating…</p>';
@@ -179,22 +360,48 @@
       '?width=768&height=768&nologo=true&seed=' + Math.floor(Math.random() * 1e9);
 
     const img = new Image();
-    img.onload = () => {
+    img.onload = async () => {
       imgResult.innerHTML = '';
       imgResult.appendChild(img);
       imgBtn.disabled = false;
       headerOrb.classList.remove('thinking');
+      if (status !== 'active') {
+        await incrementUsage(userId, usage.today, usage.count);
+        refreshQuota();
+      }
     };
     img.onerror = () => {
-      imgResult.innerHTML = '<p>That didn\'t load — Pollinations may be rate-limiting this connection right now. Try again in a bit, or add a free API key (see the note below).</p>';
+      imgResult.innerHTML = '<p>That didn\'t load — Pollinations may be rate-limiting this connection right now. Try again shortly.</p>';
       imgBtn.disabled = false;
       headerOrb.classList.remove('thinking');
     };
     img.src = url;
     img.alt = prompt;
   });
+
+  // ---- Upgrade (Stripe Checkout) ----
+  async function startCheckout(){
+    if (!currentSession) return;
+    const res = await fetch('/.netlify/functions/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentSession.user.id, email: currentSession.user.email })
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert(data.error || "Couldn't start checkout — is STRIPE_SECRET_KEY set on Netlify yet?");
+    }
+  }
+  document.getElementById('upgradeBtn2').addEventListener('click', startCheckout);
+
+  // If we just came back from a successful checkout, give the webhook a
+  // moment to land, then refresh the quota display.
+  if (new URLSearchParams(location.search).get('checkout') === 'success') {
+    setTimeout(refreshQuota, 2000);
+  }
 </script>
 
 </body>
 </html>
-switch to images-only version
