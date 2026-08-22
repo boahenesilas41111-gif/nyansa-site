@@ -382,16 +382,22 @@
   // ---- Upgrade (Stripe Checkout) ----
   async function startCheckout(){
     if (!currentSession) return;
-    const res = await fetch('/.netlify/functions/create-checkout-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: currentSession.user.id, email: currentSession.user.email })
-    });
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      alert(data.error || "Couldn't start checkout — is STRIPE_SECRET_KEY set on Netlify yet?");
+    try {
+      const res = await fetch('/.netlify/functions/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentSession.user.id, email: currentSession.user.email })
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        const message = (data.error && data.error.message) ? data.error.message
+          : (typeof data.error === 'string' ? data.error : JSON.stringify(data.error));
+        alert("Checkout couldn't start: " + (message || 'Unknown error'));
+      }
+    } catch (err) {
+      alert("Something went wrong starting checkout: " + err.message);
     }
   }
   document.getElementById('upgradeBtn2').addEventListener('click', startCheckout);
