@@ -32,6 +32,7 @@ exports.handler = async (event) => {
       return { statusCode: 500, body: JSON.stringify({ error: 'Could not look up the subscription plan.' }) };
     }
     const amount = planData.data.amount;
+    const currency = planData.data.currency;
 
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
@@ -42,6 +43,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         email: email,
         amount: amount,
+        currency: currency,
         // This plan code is specific to your Paystack plan (Nyansa Unlimited).
         plan: 'PLN_ym5e285xhl608ox',
         callback_url: siteUrl + '/?checkout=success',
