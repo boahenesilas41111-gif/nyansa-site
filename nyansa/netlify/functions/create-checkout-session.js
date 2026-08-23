@@ -21,6 +21,18 @@ exports.handler = async (event) => {
     // process.env.URL is Netlify's own live site URL — no need to hardcode a domain.
     const siteUrl = process.env.URL || ('https://' + event.headers.host);
 
+    // Paystack still wants an explicit amount even when a plan is given —
+    // look the plan's real amount up each time so it can't drift out of
+    // sync if the price is ever changed in the Paystack dashboard.
+    const planRes = await fetch('https://api.paystack.co/plan/PLN_ym5e285xhl608ox', {
+      headers: { 'Authorization': 'Bearer ' + secretKey }
+    });
+    const planData = await planRes.json();
+    if (!planRes.ok || !planData.status) {
+      return { statusCode: 500, body: JSON.stringify({ error: 'Could not look up the subscription plan.' }) };
+    }
+    const amount = planData.data.amount;
+
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
       headers: {
@@ -29,6 +41,7 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({
         email: email,
+        amount: amount,
         // This plan code is specific to your Paystack plan (Nyansa Unlimited).
         plan: 'PLN_ym5e285xhl608ox',
         callback_url: siteUrl + '/?checkout=success',
