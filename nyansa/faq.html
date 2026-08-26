@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQ — Nyansa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0F1116; --surface:#171A21; --surface-2:#1F2330; --border:#2A2E3A;
+    --text:#ECE8DE; --text-dim:#9A9FAE; --amber:#F2A93B; --periwinkle:#8DA3FF;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;}
+  header{display:flex;align-items:center;gap:10px;padding:16px 24px;border-bottom:1px solid var(--border);}
+  .orb{width:30px;height:30px;border-radius:50%;flex:none;
+    background:radial-gradient(circle at 32% 30%, var(--amber) 0%, transparent 45%),
+      radial-gradient(circle at 68% 65%, var(--periwinkle) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, #2c3040 0%, #14161c 70%);}
+  header h1{font-family:'Fraunces',serif;font-weight:600;font-size:18px;margin:0;}
+  header a{color:var(--text-dim);text-decoration:none;font-size:12.5px;font-family:'IBM Plex Mono',monospace;}
+  main{max-width:640px;margin:0 auto;padding:40px 20px 60px;line-height:1.7;}
+  h2{font-family:'Fraunces',serif;font-weight:500;font-size:26px;margin:0 0 20px;}
+  .q{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:12px;}
+  .q b{display:block;font-size:14.5px;margin-bottom:6px;}
+  .q p{color:var(--text-dim);font-size:14px;margin:0;line-height:1.6;}
+  footer{border-top:1px solid var(--border);padding:24px 20px;text-align:center;}
+  footer nav a{color:var(--text-dim);font-size:12.5px;font-family:'IBM Plex Mono',monospace;text-decoration:none;margin:0 10px;}
+  footer nav a:hover{color:var(--text);}
+</style>
+</head>
+<body>
+<header>
+  <div class="orb"></div>
+  <h1>Nyansa</h1>
+  <span style="flex:1;"></span>
+  <a href="index.html">← Back to app</a>
+</header>
+<main>
+  <h2>Frequently asked questions</h2>
+
+  <div class="q">
+    <b>How many images can I generate for free?</b>
+    <p>Every account gets 3 free image generations per day. The count resets daily.</p>
+  </div>
+
+  <div class="q">
+    <b>How do I get unlimited images?</b>
+    <p>Once you've used your 3 free images for the day, an Upgrade button appears. It takes you to Paystack's secure checkout to start a monthly subscription. Your account updates automatically once payment goes through.</p>
+  </div>
+
+  <div class="q">
+    <b>How do I cancel my subscription?</b>
+    <p>Subscriptions can be managed and cancelled directly through Paystack — you'll get a receipt email from Paystack after subscribing with a link to manage your subscription.</p>
+  </div>
+
+  <div class="q">
+    <b>Do I need an account to use Nyansa?</b>
+    <p>Yes — a free email sign-up is required so we can track your daily free images and your subscription status.</p>
+  </div>
+
+  <div class="q">
+    <b>What happens to the images I generate?</b>
+    <p>Images are generated on request and shown to you in the browser. Nyansa does not store or share the images you generate.</p>
+  </div>
+
+  <div class="q">
+    <b>I have feedback or a problem with my account — who do I contact?</b>
+    <p>Reach out at the email address associated with the Nyansa business account, and we'll get back to you as soon as possible.</p>
+  </div>
+</main>
+<footer>
+  <nav>
+    <a href="about.html">About</a>
+    <a href="faq.html">FAQ</a>
+    <a href="terms.html">Terms of Service</a>
+    <a href="privacy.html">Privacy Policy</a>
+  </nav>
+</footer>
+</body>
+</html>
