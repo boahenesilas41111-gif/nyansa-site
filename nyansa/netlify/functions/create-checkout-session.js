@@ -24,7 +24,7 @@ exports.handler = async (event) => {
     // Paystack still wants an explicit amount even when a plan is given —
     // look the plan's real amount up each time so it can't drift out of
     // sync if the price is ever changed in the Paystack dashboard.
-    const planRes = await fetch('https://api.paystack.co/plan/PLN_yyolws9emg75bli', {
+    const planRes = await fetch('https://api.paystack.co/plan/PLN_464kn6pylq08wrz', {
       headers: { 'Authorization': 'Bearer ' + secretKey }
     });
     const planData = await planRes.json();
@@ -45,7 +45,7 @@ exports.handler = async (event) => {
         amount: amount,
         currency: currency,
         // This plan code is specific to your Paystack plan (Nyansa Unlimited).
-        plan: 'PLN_yyolws9emg75bli',
+        plan: 'PLN_464kn6pylq08wrz',
         callback_url: siteUrl + '/?checkout=success',
         // Tagging the transaction with the Supabase user id is how the
         // webhook later knows WHICH user just paid.
