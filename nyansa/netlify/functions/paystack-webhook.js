@@ -1,17 +1,18 @@
-// Receives events from Paystack (payment succeeded, subscription cancelled,
-// etc.) and updates the `subscriptions` table in Supabase accordingly.
+// Receives payment events from Paystack and grants 30 days of unlimited
+// access when a one-time payment succeeds.
 //
 // Needs three environment variables in Netlify:
 //   PAYSTACK_SECRET_KEY        — same key used in create-checkout-session.js.
 //                                 Paystack uses this same key to sign
 //                                 webhooks, so no separate webhook secret
-//                                 is needed (unlike Stripe).
+//                                 is needed.
 //   SUPABASE_URL               — same one used elsewhere in this project
 //   SUPABASE_SERVICE_ROLE_KEY  — the SECRET Supabase key (never the anon
 //                                 one) — lets the server write to any
 //                                 user's row, bypassing row-level security.
 
 const crypto = require('crypto');
+const ACCESS_DAYS = 30;
 
 exports.handler = async (event) => {
   const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
@@ -45,7 +46,10 @@ exports.handler = async (event) => {
       const data = payload.data;
       const userId = data.metadata && data.metadata.user_id;
       const customerCode = data.customer && data.customer.customer_code;
+
       if (userId) {
+        const expiresAt = new Date(Date.now() + ACCESS_DAYS * 24 * 60 * 60 * 1000).toISOString();
+
         await fetch(supabaseUrl + '/rest/v1/subscriptions', {
           method: 'POST',
           headers: {
@@ -57,27 +61,10 @@ exports.handler = async (event) => {
           body: JSON.stringify({
             user_id: userId,
             status: 'active',
-            // Reusing the same column that used to hold Stripe's customer
-            // id — it's just a generic text field for "the processor's
-            // reference to this customer".
             stripe_customer_id: customerCode,
+            expires_at: expiresAt,
             updated_at: new Date().toISOString()
           })
-        });
-      }
-    } else if (payload.event === 'subscription.disable' || payload.event === 'subscription.not_renew') {
-      const data = payload.data;
-      const customerCode = data.customer && data.customer.customer_code;
-      if (customerCode) {
-        await fetch(supabaseUrl + '/rest/v1/subscriptions?stripe_customer_id=eq.' + customerCode, {
-          method: 'PATCH',
-          headers: {
-            'apikey': serviceKey,
-            'Authorization': 'Bearer ' + serviceKey,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify({ status: 'free', updated_at: new Date().toISOString() })
         });
       }
     }
