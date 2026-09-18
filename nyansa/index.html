@@ -218,7 +218,7 @@
   <!-- Shown when signed out -->
   <div id="authSection">
     <h2>Sign in to generate images</h2>
-    <p class="lede">Everyone gets 3 free images a day. Unlimited is $3/month.</p>
+    <p class="lede">Everyone gets 3 free images a day. GHS 10 gets you 30 days of unlimited — pay by card, Mobile Money, bank transfer, or USSD.</p>
     <div id="authBox">
       <input type="email" id="authEmail" placeholder="Email">
       <input type="password" id="authPassword" placeholder="Password">
@@ -240,9 +240,9 @@
     </form>
     <div id="imgResult"></div>
     <div class="status-card upgrade" id="upgradeCard" style="display:none;">
-      <b>Out of free images for today.</b> Upgrade to unlimited for $3/month, or come back tomorrow for 3 more.
+      <b>Out of free images for today.</b> Get 30 days of unlimited for GHS 10, or come back tomorrow for 3 more.
       <div style="margin-top:10px;">
-        <button id="upgradeBtn2" type="button" style="background:var(--amber);color:#10121A;border:none;border-radius:10px;padding:8px 16px;font-family:'Inter',sans-serif;font-weight:600;font-size:13.5px;cursor:pointer;">Upgrade — $3/mo</button>
+        <button id="upgradeBtn2" type="button" style="background:var(--amber);color:#10121A;border:none;border-radius:10px;padding:8px 16px;font-family:'Inter',sans-serif;font-weight:600;font-size:13.5px;cursor:pointer;">Get unlimited — GHS 10 / 30 days</button>
       </div>
     </div>
     <div class="status-card">
@@ -328,11 +328,16 @@
     accountArea.appendChild(logoutBtn);
   }
 
-  // ---- Usage + subscription checks (safe from the browser — RLS restricts
+  // ---- Access + usage checks (safe from the browser — RLS restricts
   // every user to their own row only) ----
-  async function getSubscriptionStatus(userId){
-    const { data } = await supabaseClient.from('subscriptions').select('status').eq('user_id', userId).maybeSingle();
-    return data ? data.status : 'free';
+
+  // Returns the Date their unlimited access runs out, or null if they
+  // don't currently have any (never bought, or it's expired).
+  async function getUnlimitedUntil(userId){
+    const { data } = await supabaseClient.from('subscriptions').select('expires_at').eq('user_id', userId).maybeSingle();
+    if (!data || !data.expires_at) return null;
+    const expiresAt = new Date(data.expires_at);
+    return expiresAt > new Date() ? expiresAt : null;
   }
 
   async function getTodayUsage(userId){
@@ -348,9 +353,10 @@
   async function refreshQuota(){
     if (!currentSession) return;
     const userId = currentSession.user.id;
-    const status = await getSubscriptionStatus(userId);
-    if (status === 'active'){
-      quotaLine.textContent = "You're on Unlimited. Generate as many as you like.";
+    const unlimitedUntil = await getUnlimitedUntil(userId);
+    if (unlimitedUntil){
+      const dateStr = unlimitedUntil.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      quotaLine.textContent = "You're on Unlimited until " + dateStr + ".";
       upgradeCard.style.display = 'none';
       return;
     }
@@ -387,9 +393,9 @@
     if (!prompt) return;
 
     const userId = currentSession.user.id;
-    const status = await getSubscriptionStatus(userId);
+    const unlimitedUntil = await getUnlimitedUntil(userId);
     let usage = null;
-    if (status !== 'active') {
+    if (!unlimitedUntil) {
       usage = await getTodayUsage(userId);
       if (usage.count >= FREE_LIMIT) {
         upgradeCard.style.display = 'block';
@@ -419,7 +425,7 @@
 
       imgBtn.disabled = false;
       headerOrb.classList.remove('thinking');
-      if (status !== 'active') {
+      if (!unlimitedUntil) {
         await incrementUsage(userId, usage.today, usage.count);
         refreshQuota();
       }
@@ -433,7 +439,7 @@
     img.alt = prompt;
   });
 
-  // ---- Upgrade (Stripe Checkout) ----
+  // ---- Get unlimited access (Paystack one-time checkout) ----
   async function startCheckout(){
     if (!currentSession) return;
     try {
