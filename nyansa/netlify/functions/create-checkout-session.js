@@ -44,6 +44,9 @@ exports.handler = async (event) => {
         email: email,
         amount: amount,
         currency: currency,
+        // Ask for more than just card — Mobile Money matters a lot for
+        // Ghanaian customers specifically.
+        channels: ['card', 'mobile_money', 'bank', 'ussd'],
         // This plan code is specific to your Paystack plan (Nyansa Unlimited).
         plan: 'PLN_yyolws9emg75bli',
         callback_url: siteUrl + '/?checkout=success',
