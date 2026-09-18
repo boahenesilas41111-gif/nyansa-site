@@ -1,6 +1,14 @@
-// Starts a Paystack subscription checkout for a logged-in user.
+// Starts a ONE-TIME Paystack payment for 30 days of unlimited access.
+// (Not a recurring subscription — Paystack subscriptions only support
+// card payments, which locks out Mobile Money, Bank Transfer, and USSD.
+// A one-time charge supports all of those instead.)
+//
 // PAYSTACK_SECRET_KEY must be set in Netlify's environment variables.
-// Calls Paystack's plain REST API directly — no SDK needed.
+
+// Price of one 30-day unlimited pass, in pesewas (GHS's smallest unit —
+// 100 pesewas = GHS 1). Change this single number to change the price.
+const AMOUNT_PESEWAS = 1000; // GHS 10.00
+const CURRENCY = 'GHS';
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -21,19 +29,6 @@ exports.handler = async (event) => {
     // process.env.URL is Netlify's own live site URL — no need to hardcode a domain.
     const siteUrl = process.env.URL || ('https://' + event.headers.host);
 
-    // Paystack still wants an explicit amount even when a plan is given —
-    // look the plan's real amount up each time so it can't drift out of
-    // sync if the price is ever changed in the Paystack dashboard.
-    const planRes = await fetch('https://api.paystack.co/plan/PLN_yyolws9emg75bli', {
-      headers: { 'Authorization': 'Bearer ' + secretKey }
-    });
-    const planData = await planRes.json();
-    if (!planRes.ok || !planData.status) {
-      return { statusCode: 500, body: JSON.stringify({ error: 'Could not look up the subscription plan.' }) };
-    }
-    const amount = planData.data.amount;
-    const currency = planData.data.currency;
-
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
       headers: {
@@ -42,13 +37,11 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({
         email: email,
-        amount: amount,
-        currency: currency,
-        // Ask for more than just card — Mobile Money matters a lot for
-        // Ghanaian customers specifically.
+        amount: AMOUNT_PESEWAS,
+        currency: CURRENCY,
+        // No "plan" here — this is what makes it a one-time charge, which
+        // is what unlocks these extra channels.
         channels: ['card', 'mobile_money', 'bank', 'ussd'],
-        // This plan code is specific to your Paystack plan (Nyansa Unlimited).
-        plan: 'PLN_yyolws9emg75bli',
         callback_url: siteUrl + '/?checkout=success',
         // Tagging the transaction with the Supabase user id is how the
         // webhook later knows WHICH user just paid.
